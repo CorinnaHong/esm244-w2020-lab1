@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, packages}
+```{r, include = FALSE, packages}
 
 library(tidyverse)
 library(here)
@@ -21,11 +21,9 @@ library(kableExtra)
 
 Read in noaa_fisheries.csv data
 
-```{r, data}
+```{r, message = FALSE, data}
 
 us_landings <- read_csv("data/noaa_fisheries.csv") # use when you have something inside a subfolder. R only looks at top level folder. use read_csv(here("data","noaa_fisheries.csv")
-
-
 
 ```
 
@@ -73,7 +71,7 @@ salmon_summary <- salmon_landings %>%
 
 Make a graph
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 
 salmon_landings_graph <- ggplot(data = salmon_summary, aes(x = year, y = tot_landings)) +
   geom_line(aes(color = species)) +
@@ -86,12 +84,12 @@ salmon_landings_graph
 
 Export graph with ggsave
 
-```{r}
+```{r, warning = FALSE}
 
 ggsave(plot = salmon_landings_graph,
-       here("figures","us_salmon_ch.png"),
+       here("figures","us_salmon_ch.png"), # saves graph separate from rest of code, here specifies where to save it and under what name
        height = 5,
-       width = 8) # saves graph separate from rest of code, here species where to save it
+       width = 8) # Changes default of 7x7
 
 ```
 
@@ -106,7 +104,6 @@ salmon_first5 <- salmon_summary %>%
 kable(salmon_first5) %>% 
   kable_styling(bootstrap_options = "striped",
                 full_width = FALSE)
-
 
 ```
 
