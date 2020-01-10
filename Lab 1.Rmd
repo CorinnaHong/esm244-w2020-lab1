@@ -1,0 +1,112 @@
+---
+title: "Lab 1"
+author: "Corinna Hong"
+date: "January 9, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, packages}
+
+library(tidyverse)
+library(here)
+library(janitor)
+library(kableExtra)
+
+```
+
+
+Read in noaa_fisheries.csv data
+
+```{r, data}
+
+us_landings <- read_csv("data/noaa_fisheries.csv") # use when you have something inside a subfolder. R only looks at top level folder. use read_csv(here("data","noaa_fisheries.csv")
+
+
+
+```
+
+
+Now, make a tidy version of dataframe
+
+```{r, tidy it up}
+
+landings_tidy <- us_landings %>% 
+  janitor:: clean_names() %>% # changes column names it to snakecase
+  mutate(state = str_to_lower(state),
+         afs_name = str_to_lower(afs_name)) %>% # change words to lowercase
+  mutate(dollars_num = parse_number(dollars_usd))
+
+```
+
+
+Get information for Salmon
+
+```{r, salmon df}
+
+salmon_landings <- landings_tidy %>% 
+  mutate(afs_clean = str_remove(afs_name, pattern = "aggregate")) %>% 
+  filter(str_detect(afs_clean, pattern = "salmon")) %>%  # Using filter w/ str_detect will look for anything with "salmon" and keep only those
+  separate(afs_clean, into = c ("group","species"), sep = ",") # separate afs_clean into two columns, separate them at the comma
+
+```
+
+
+Find grouped summary data:
+
+Find annual total US landings and dollar value (summing across all states) for each TYPE of salmon using 'group-by()' + 'summarize()'
+
+```{r}
+
+salmon_summary <- salmon_landings %>% 
+  group_by(year, species) %>% 
+  summarize (
+    tot_landings = sum(landings_pounds),
+    tot_value = sum(dollars_num)
+  )
+
+```
+
+
+Make a graph
+
+```{r}
+
+salmon_landings_graph <- ggplot(data = salmon_summary, aes(x = year, y = tot_landings)) +
+  geom_line(aes(color = species)) +
+  theme_minimal()
+
+salmon_landings_graph
+
+```
+
+
+Export graph with ggsave
+
+```{r}
+
+ggsave(plot = salmon_landings_graph,
+       here("figures","us_salmon_ch.png"),
+       height = 5,
+       width = 8) # saves graph separate from rest of code, here species where to save it
+
+```
+
+
+Make a table
+
+```{r}
+
+salmon_first5 <- salmon_summary %>% 
+  head(5)
+
+kable(salmon_first5) %>% 
+  kable_styling(bootstrap_options = "striped",
+                full_width = FALSE)
+
+
+```
+
